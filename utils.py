@@ -133,24 +133,34 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
     plt.show()
     
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import math
+
 def histplot_all(data: pd.DataFrame, target: str):
-            
-    for col in data.columns:
-        if data[col].dtype != object and col != target:
-            print(f'Plotting {col}...')
-            nrows, ncols = 2, 2  # Adjust according to the number of plots
-
-            fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8))
-
-            # Flatten axes for easy iteration if it's a 2D array
-            axes = axes.flatten()
-
-            for i, ax in enumerate(axes):
-                sns.histplot(data[col], kde=True, ax=ax, cbar=i == len(axes) - 1)
-                plt.title(f'{col} distribution')
-                plt.tight_layout()
-                plt.show()
+    # Filter numeric columns excluding the target
+    numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
     
+    # Determine the number of rows and columns for the grid
+    n_cols = 3  # You can adjust this for the desired number of columns
+    n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
+    
+    # Set up the matplotlib figure with the calculated grid
+    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axes = axes.flatten()  # Flatten to easily iterate through if it's 2D
+
+    for i, col in enumerate(numeric_cols):
+        sns.histplot(data[col], kde=True, ax=axes[i])  # Plot each histogram
+        axes[i].set_title(f'{col} Distribution')
+    
+    # Turn off any extra subplots if columns are fewer than grid spaces
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+    
+    plt.tight_layout()
+    plt.show()
+
 
             
 
