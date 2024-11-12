@@ -29,8 +29,11 @@ def missing_values_plot(data: pd.DataFrame, target: str):
         print("No usable samples found (all target values are missing).")
         return
     
-    shape = data.shape
-    print(shape)
+    print("Shape of usable data:", usable.shape)  # Ensure this line is here, after defining `usable`
+
+    if usable.empty:
+        print("No usable samples found (all target values are missing).")
+        return
 
     # Calculate missing value count and ratio for each feature
     missing_count = usable.isnull().sum().reset_index()
