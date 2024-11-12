@@ -132,3 +132,15 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
     plt.tight_layout()
     plt.show()
     
+
+def histplot_all(data: pd.DataFrame, target: str):
+
+    for col in data.columns:
+        if col.dtype != object and col != target:
+            sns.histplot(data[col], kde=True)
+            plt.title(f'{col} distribution')
+            plt.show()
+
+            
+
+            
