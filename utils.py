@@ -5,6 +5,7 @@ import pandas as pd
 import seaborn as sns
 import numpy as np
 from matplotlib.ticker import MaxNLocator, FormatStrFormatter, PercentFormatter
+import math
 
 def missing_values_plot(data: pd.DataFrame, target: str):
     
