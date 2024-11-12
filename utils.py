@@ -134,12 +134,23 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
     
 
 def histplot_all(data: pd.DataFrame, target: str):
-
+            
     for col in data.columns:
         if data[col].dtype != object and col != target:
-            sns.histplot(data[col], kde=True)
-            plt.title(f'{col} distribution')
-            plt.show()
+            print(f'Plotting {col}...')
+            nrows, ncols = 2, 2  # Adjust according to the number of plots
+
+            fig, axes = plt.subplots(nrows=nrows, ncols=ncols, figsize=(12, 8))
+
+            # Flatten axes for easy iteration if it's a 2D array
+            axes = axes.flatten()
+
+            for i, ax in enumerate(axes):
+                sns.histplot(data[col], kde=True, ax=ax, cbar=i == len(axes) - 1)
+                plt.title(f'{col} distribution')
+                plt.tight_layout()
+                plt.show()
+    
 
             
 
