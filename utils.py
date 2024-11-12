@@ -138,18 +138,19 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
 import math
 import warnings
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import math
 
-
-def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: bool = False):
+def histplot_all(data: pd.DataFrame, target: str, hue: bool = True):
     """
-    Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
-    and optional log scaling for the x-axis.
+    Plots histograms for all numeric columns in a DataFrame with optional class separation by hue.
     
     Parameters:
     - data (pd.DataFrame): The input DataFrame.
     - target (str): The target column name, used as hue if it's categorical and hue is True.
     - hue (bool): If True, will use target as hue for categorical targets; default is True. Max Hue is limited to 5.
-    - log_scale (bool): If True, applies a log scale to the x-axis for each histogram.
     """
     # Check if the target column exists in the DataFrame
     if target not in data.columns:
@@ -169,36 +170,67 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
     fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
     axes = axes.flatten()
 
-    # Track the index for the axes to skip empty plots correctly
-    plot_index = 0
-
-    for col in numeric_cols:
-        # Apply log1p transformation if log_scale is True and skip columns with negative values
-        if log_scale:
-            # Check for negative values (log1p can handle zero but not negatives)
-            if (data[col] < 0).any():
-                warnings.warn(f"Column '{col}' contains negative values and will be skipped for log scale.")
-                continue  # Skip this column if it has negative values
-            plot_data = np.log1p(data[col])  # Log1p-transform the data for plotting
-            xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
-        else:
-            plot_data = data[col]
-            xlabel = col  # Use original label if log_scale is False
-
+    for i, col in enumerate(numeric_cols):
         # Plot with or without hue depending on the use_hue flag
         if use_hue:
-            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[plot_index], multiple="stack")
+            sns.histplot(data=data, x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
         else:
-            sns.histplot(data=plot_data, kde=True, ax=axes[plot_index])
+            sns.histplot(data=data, x=col, kde=True, ax=axes[i])
             
-        # Set titles and labels only for plotted columns
-        axes[plot_index].set_title(f'{col} Distribution')
-        axes[plot_index].set_xlabel(xlabel)
-        plot_index += 1  # Increment the plot index only after successfully plotting
-
+        axes[i].set_title(f'{col} Distribution')
+    
     # Turn off any extra subplots if columns are fewer than grid spaces
-    for j in range(plot_index, len(axes)):
+    for j in range(i + 1, len(axes)):
         axes[j].axis('off')
     
     plt.tight_layout()
     plt.show()
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import math
+import numpy as np
+import warnings
+
+def histplot_all_(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bool = False):
+    """
+    Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
+    and optional log scaling using log1p for the x-axis.
+    
+    Parameters:
+    - data (pd.DataFrame): The input DataFrame.
+    - target (str): The target column name, used as hue if it's categorical and hue is True.
+    - hue (bool): If True, will use target as hue for categorical targets; default is True. Max Hue is limited to 5.
+    - log_scale (bool): If True, applies a log1p scale to the x-axis for each histogram, default is False.
+    """
+    # Check if the target column exists in the DataFrame
+    if target not in data.columns:
+        raise ValueError(f"The target column '{target}' does not exist in the provided DataFrame.")
+    
+    # Check if hue should be used (only if the target is categorical and hue is True)
+    use_hue = hue and (data[target].dtype == 'object' or data[target].nunique() < 5)
+    
+    # Filter numeric columns excluding the target
+    numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
+    
+    # Determine the number of rows and columns for the grid
+    n_cols = 3  
+    n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
+    
+    # Set up the matplotlib figure with the calculated grid
+    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axes = axes.flatten()
+
+    for i, col in enumerate(numeric_cols):
+        # Apply log1p transformation if log_scale is True
+        if log_scale:
+            # Check for non-positive values in the data
+            if (data[col] < 0).any():
+                warnings.warn(f"Column '{col}' contains negative values and cannot use log scale. Plotting without log scale.")
+                plot_data = data[col]  # Use original data if log scale isn't possible
+                xlabel = col
+                title = f"{col} Distribution"
+            else:
+                plot_data = np.log1p(data[col])  # Log1p-transform the data
+      
