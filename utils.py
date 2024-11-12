@@ -102,10 +102,13 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str):
         raise ValueError(f"Target column '{target}' not found in data.")
     
      # Filter data to include only numeric columns
-    numeric_data = data.select_dtypes(include=[np.number])
-    num_cols = len(numeric_data.columns)
+    
+    data = data[data[target].notnull()]
+
+    usable = data.select_dtypes(include=[np.number])
+    num_cols = len(usable.columns)
     # Filter usable samples where target is not null and include only numeric columns
-    usable = numeric_data[numeric_data[target].notnull()]
+    #usable = numeric_data[numeric_data[target].notnull()]
 
     if usable.empty:
         print("No usable samples found (all target values are missing).")
