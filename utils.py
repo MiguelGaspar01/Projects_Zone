@@ -66,7 +66,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
     plt.xlim(0, 1)
     plt.xlabel("Percentage")
     plt.legend()
-    #plt.tight_layout()
+    plt.tight_layout()
     plt.show()
 
     
