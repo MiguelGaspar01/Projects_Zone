@@ -44,7 +44,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
     missing_count = missing_count.sort_values('null_count', ascending=False)
 
     # Plot the missing vs available values as a horizontal bar chart
-    plt.figure(figsize=(6, max(5, len(missing_count) * 0.3)))  # Adjust height based on number of features
+    plt.figure(figsize=(6, max(15, len(missing_count) * 0.3)))  # Adjust height based on number of features
     plt.title(f'Missing values over the {len(usable)} usable samples')
     
     plt.barh(np.arange(len(missing_count)), 
