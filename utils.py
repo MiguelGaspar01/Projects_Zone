@@ -81,111 +81,67 @@ def missing_values_plot(data: pd.DataFrame, target: str):
 
 
 
-def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pearson'):
-    
-    """
-    Plots the correlation matrix of the features in a DataFrame.
-
-    Parameters:
-        data (pd.DataFrame): The DataFrame containing the data.
-        target (str): The target column name used to filter usable samples.
-        threshold (float): The threshold for filtering the correlation matrix.
-
-    Raises:
-        ValueError: If `target` is not in `data.columns`.
-    """
-    
-    if target is object:
-        raise ValueError(f"Target column '{target}' is not numeric.")
-
-    if target not in data.columns:
-        raise ValueError(f"Target column '{target}' not found in data.")
-    
-     # Filter data to include only numeric columns
-    
-    data = data[data[target].notnull()]
-
-    usable = data.select_dtypes(include=[np.number])
-    num_cols = len(usable.columns)
-    # Filter usable samples where target is not null and include only numeric columns
-    #usable = numeric_data[numeric_data[target].notnull()]
-
-
-    if method not in ['pearson', 'spearman', 'kendall']:
-        raise ValueError("Invalid correlation method. Choose from 'pearson', 'spearman', or 'kendall'.")
-
-
-    if usable.empty:
-        print("No usable samples found (all target values are missing).")
-        return
-    
-    # Calculate the correlation matrix
-
-    corr = usable.corr(method = method)
-    corr = corr.dropna(how='all').dropna(axis=1, how='all')
-
-    # Plot the correlation matrix as a heatmap
-    plt.figure(figsize=(max(0.5 * num_cols, 10), max(0.5 * num_cols, 10)))
-    plt.title(f'Correlation matrix over the {len(usable)} usable samples with {method} correlation')
-
-    sns.heatmap(corr, annot=True, fmt=".2f", cmap=sns.color_palette("rocket", as_cmap=True), center=0)
-    plt.tight_layout()
-    plt.show()
-    
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import math
+import numpy as np
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import math
-
-def histplot_all(data: pd.DataFrame, target: str, hue: bool = True):
+def histplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bool = False):
     """
-    Plots histograms for all numeric columns in a DataFrame with optional class separation by hue.
+    Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
+    and optional log scaling for the x-axis.
     
     Parameters:
     - data (pd.DataFrame): The input DataFrame.
     - target (str): The target column name, used as hue if it's categorical and hue is True.
-    - hue (bool): If True, will use target as hue for categorical targets; default is True. In this function the max Hue is limited to 5
+    - hue (bool): If True, will use target as hue for categorical targets; default is True. Max Hue is limited to 5.
+    - log_scale (bool): If True, applies a log scale to the x-axis for each histogram.
     """
-    if target not in data.columns: #check if the target is in the data.columns list
+    # Check if the target column exists in the DataFrame
+    if target not in data.columns:
         raise ValueError(f"The target column '{target}' does not exist in the provided DataFrame.")
     
-    #Check if hue should be used (only if the target is categorical and hue is True)
+    # Check if hue should be used (only if the target is categorical and hue is True)
     use_hue = hue and (data[target].dtype == 'object' or data[target].nunique() < 5)
     
-    #Filter numeric columns excluding the target
+    # Filter numeric columns excluding the target
     numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
     
-    #Determine the number of rows and columns for the grid
+    # Determine the number of rows and columns for the grid
     n_cols = 3  
-    n_rows = math.ceil(len(numeric_cols) / n_cols)  #Calculate rows based on columns and the number of plots
+    n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
     
-    
+    # Set up the matplotlib figure with the calculated grid
     fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
-    axes = axes.flatten() 
+    axes = axes.flatten()
 
     for i, col in enumerate(numeric_cols):
-        
-        if use_hue:
-            sns.histplot(data=data, x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
+        # Apply log transformation if log_scale is True
+        if log_scale:
+            # Check for non-positive values in the data (log transformation requires positive values)
+            if (data[col] <= 0).any():
+                raise ValueError(f"Column '{col}' contains non-positive values, which cannot be used with log scale.")
+            plot_data = np.log(data[col])  # Log-transform the data for plotting
+            xlabel = f'Log of {col}'  # Label for log-transformed x-axis
         else:
-            sns.histplot(data=data, x=col, kde=True, ax=axes[i])
+            plot_data = data[col]
+            xlabel = col
+
+        # Plot with or without hue depending on the use_hue flag
+        if use_hue:
+            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
+        else:
+            sns.histplot(data=plot_data, kde=True, ax=axes[i])
             
         axes[i].set_title(f'{col} Distribution')
+        axes[i].set_xlabel(xlabel)
     
-    #Turn off any extra subplots if columns are fewer than grid spaces
+    # Turn off any extra subplots if columns are fewer than grid spaces
     for j in range(i + 1, len(axes)):
         axes[j].axis('off')
     
     plt.tight_layout()
     plt.show()
-
-
-            
 
             
