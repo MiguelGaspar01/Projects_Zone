@@ -139,6 +139,7 @@ import math
 import warnings
 
 
+
 def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: bool = False):
     """
     Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
@@ -174,12 +175,13 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
             # Check for negative values (log1p can handle zero but not negatives)
             if (data[col] < 0).any():
                 warnings.warn(f"Column '{col}' contains negative values and will be skipped for log scale.")
+                axes[i].axis('off')  # Turn off the axis for the skipped column
                 continue  # Skip this column if it has negative values
             plot_data = np.log1p(data[col])  # Log1p-transform the data for plotting
             xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
         else:
             plot_data = data[col]
-            xlabel = col
+            xlabel = col  # Use original label if log_scale is False
 
         # Plot with or without hue depending on the use_hue flag
         if use_hue:
@@ -196,4 +198,5 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
     
     plt.tight_layout()
     plt.show()
+
 
