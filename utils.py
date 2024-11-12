@@ -61,7 +61,11 @@ def missing_values_plot(data: pd.DataFrame, target: str):
              color='gray', label='available')
     
     for i, (null_count, null_ratio) in enumerate(zip(missing_count['null_count'], missing_count['null_ratio'])):
-        plt.text(null_ratio - 0.02, i, f'{null_count}', color='white', va='center', ha='right')
+        if null_ratio > 0.05: 
+            plt.text(null_ratio - 0.02, i, f'{null_count}', color='white', va='center', ha='right')
+        else:
+            plt.text(null_ratio + 0.02, i, f'{null_count}', color='black', va='center', ha='left')
+
     
     plt.yticks(np.arange(len(missing_count)), missing_count['feature'])
     plt.gca().xaxis.set_major_formatter(PercentFormatter(xmax=1, decimals=0))
