@@ -29,7 +29,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
         print("No usable samples found (all target values are missing).")
         return
     
-    print("Shape of usable data:", usable.shape)  # Ensure this line is here, after defining `usable`
+      # Ensure this line is here, after defining `usable`
 
 
 
@@ -68,7 +68,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
     plt.legend()
     plt.tight_layout()
     plt.show()
-
+    print("Shape of usable data:", usable.shape)
     
 
 
