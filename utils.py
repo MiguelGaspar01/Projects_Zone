@@ -81,34 +81,43 @@ def missing_values_plot(data: pd.DataFrame, target: str):
 
 
 
-#without the exception handling
+def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float = 0.5):
+    
+    """
+    Plots the correlation matrix of the features in a DataFrame.
 
-"""def missingvalues_plot(data: pd.DataFrame, target: str):
+    Parameters:
+        data (pd.DataFrame): The DataFrame containing the data.
+        target (str): The target column name used to filter usable samples.
+        threshold (float): The threshold for filtering the correlation matrix.
 
-    usable = data[data['target'].notnull()]
+    Raises:
+        ValueError: If `target` is not in `data.columns`.
+    """
+    
+    if target is object:
+        raise ValueError(f"Target column '{target}' is not numeric.")
 
-    missing_count = usable.isnull().sum().reset_index()
-    missing_count.columns = ['feature', 'null_count']
-    missing_count['null_ratio'] = missing_count['null_count'] / len(usable)
+    if target not in data.columns:
+        raise ValueError(f"Target column '{target}' not found in data.")
 
-    missing_count = missing_count.sort_values('null_count', ascending=False)
+    # Filter usable samples where target is not null
+    usable = data[data[target].notnull()]
+    if usable.empty:
+        print("No usable samples found (all target values are missing).")
+        return
+    
+    # Calculate the correlation matrix
+    corr = usable.corr()
 
-    plt.figure(figsize=(6, 15))
-    plt.title(f'Missing values over the {len(usable)} usable samples')
+    # Filter the correlation matrix based on the threshold
+    corr = corr[(corr > threshold) | (corr < -threshold)]
+    corr = corr.dropna(how='all').dropna(axis=1, how='all')
 
-    plt.barh(np.arange(len(missing_count)), 
-            missing_count['null_ratio'], 
-            color='red', label='missing')
-
-    plt.barh(np.arange(len(missing_count)), 
-            1 - missing_count['null_ratio'],
-            left=missing_count['null_ratio'],
-            color='gray', label='available')
-
-    plt.yticks(np.arange(len(missing_count)), missing_count['feature'])
-    plt.gca().xaxis.set_major_formatter(PercentFormatter(xmax=1, decimals=0))
-    plt.xlim(0, 1)
-    plt.legend()
-    plt.show()"""
-
+    # Plot the correlation matrix as a heatmap
+    plt.figure(figsize=(10, 10))
+    plt.title(f'Correlation matrix over the {len(usable)} usable samples')
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap='coolwarm', center=0)
+    plt.tight_layout()
+    plt.show()
     
