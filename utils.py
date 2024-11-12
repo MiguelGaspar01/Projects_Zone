@@ -65,7 +65,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
     plt.tight_layout()
     plt.show()
 
-    return shape
+    return print(shape)
 
 
 
