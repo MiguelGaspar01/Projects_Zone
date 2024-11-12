@@ -119,7 +119,7 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str):
     corr = corr.dropna(how='all').dropna(axis=1, how='all')
 
     # Plot the correlation matrix as a heatmap
-    plt.figure(figsize=(0.5 * num_cols, 0.5 * num_cols))
+    plt.figure(figsize=(max(0.5 * num_cols, 8), max(0.5 * num_cols, 8)))
     plt.title(f'Correlation matrix over the {len(usable)} usable samples')
     sns.heatmap(corr, annot=True, fmt=".2f", cmap='coolwarm', center=0)
     plt.tight_layout()
