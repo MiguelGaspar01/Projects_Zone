@@ -81,7 +81,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
 
 
 
-def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float):
+def plot_correlation_matrix(data: pd.DataFrame, target: str):
     
     """
     Plots the correlation matrix of the features in a DataFrame.
