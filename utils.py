@@ -107,8 +107,6 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float = 
     # Filter usable samples where target is not null and include only numeric columns
     usable = numeric_data[numeric_data[target].notnull()]
 
-    # Filter usable samples where target is not null
-    usable = data[data[target].notnull()]
     if usable.empty:
         print("No usable samples found (all target values are missing).")
         return
