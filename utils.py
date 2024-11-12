@@ -34,7 +34,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
     missing_count['null_ratio'] = missing_count['null_count'] / len(usable)
 
     # Filter features with missing values only
-    missing_count = missing_count[missing_count['null_count'] > 0]
+    #missing_count = missing_count[missing_count['null_count'] > 0]
     
     if missing_count.empty:
         print("No missing values found in the usable samples.")
