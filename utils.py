@@ -193,7 +193,14 @@ import math
 import numpy as np
 import warnings
 
-def histplot_all_(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bool = False):
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+import math
+import numpy as np
+import warnings
+
+def histplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bool = False):
     """
     Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
     and optional log scaling using log1p for the x-axis.
@@ -233,4 +240,25 @@ def histplot_all_(data: pd.DataFrame, target: str, hue: bool = True, log_scale: 
                 title = f"{col} Distribution"
             else:
                 plot_data = np.log1p(data[col])  # Log1p-transform the data
-      
+                xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
+                title = f'Log1p Transformed {col} Distribution'
+        else:
+            plot_data = data[col]
+            xlabel = col
+            title = f"{col} Distribution"
+
+        # Plot with or without hue depending on the use_hue flag
+        if use_hue:
+            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
+        else:
+            sns.histplot(data=plot_data, kde=True, ax=axes[i])
+            
+        axes[i].set_title(title)
+        axes[i].set_xlabel(xlabel)
+    
+    # Turn off any extra subplots if columns are fewer than grid spaces
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+    
+    plt.tight_layout()
+    plt.show()
