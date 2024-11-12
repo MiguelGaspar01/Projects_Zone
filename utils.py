@@ -81,13 +81,59 @@ def missing_values_plot(data: pd.DataFrame, target: str):
 
 
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import math
-import numpy as np
+def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pearson'):
+    
+    """
+    Plots the correlation matrix of the features in a DataFrame.
 
-def histplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bool = False):
+    Parameters:
+        data (pd.DataFrame): The DataFrame containing the data.
+        target (str): The target column name used to filter usable samples.
+        threshold (float): The threshold for filtering the correlation matrix.
+
+    Raises:
+        ValueError: If `target` is not in `data.columns`.
+    """
+    
+    if target is object:
+        raise ValueError(f"Target column '{target}' is not numeric.")
+
+    if target not in data.columns:
+        raise ValueError(f"Target column '{target}' not found in data.")
+    
+     # Filter data to include only numeric columns
+    
+    data = data[data[target].notnull()]
+
+    usable = data.select_dtypes(include=[np.number])
+    num_cols = len(usable.columns)
+    # Filter usable samples where target is not null and include only numeric columns
+    #usable = numeric_data[numeric_data[target].notnull()]
+
+
+    if method not in ['pearson', 'spearman', 'kendall']:
+        raise ValueError("Invalid correlation method. Choose from 'pearson', 'spearman', or 'kendall'.")
+
+
+    if usable.empty:
+        print("No usable samples found (all target values are missing).")
+        return
+    
+    # Calculate the correlation matrix
+
+    corr = usable.corr(method = method)
+    corr = corr.dropna(how='all').dropna(axis=1, how='all')
+
+    # Plot the correlation matrix as a heatmap
+    plt.figure(figsize=(max(0.5 * num_cols, 10), max(0.5 * num_cols, 10)))
+    plt.title(f'Correlation matrix over the {len(usable)} usable samples with {method} correlation')
+
+    sns.heatmap(corr, annot=True, fmt=".2f", cmap=sns.color_palette("rocket", as_cmap=True), center=0)
+    plt.tight_layout()
+    plt.show()
+    
+
+def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: bool = False):
     """
     Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
     and optional log scaling for the x-axis.
@@ -143,5 +189,3 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: b
     
     plt.tight_layout()
     plt.show()
-
-            
