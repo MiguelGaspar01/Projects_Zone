@@ -135,64 +135,6 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
     
 
 
-import math
-import warnings
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import math
-
-def histplot_all(data: pd.DataFrame, target: str, hue: bool = True):
-    """
-    Plots histograms for all numeric columns in a DataFrame with optional class separation by hue.
-    
-    Parameters:
-    - data (pd.DataFrame): The input DataFrame.
-    - target (str): The target column name, used as hue if it's categorical and hue is True.
-    - hue (bool): If True, will use target as hue for categorical targets; default is True. Max Hue is limited to 5.
-    """
-    # Check if the target column exists in the DataFrame
-    if target not in data.columns:
-        raise ValueError(f"The target column '{target}' does not exist in the provided DataFrame.")
-    
-    # Check if hue should be used (only if the target is categorical and hue is True)
-    use_hue = hue and (data[target].dtype == 'object' or data[target].nunique() < 5)
-    
-    # Filter numeric columns excluding the target
-    numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
-    
-    # Determine the number of rows and columns for the grid
-    n_cols = 3  
-    n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
-    
-    # Set up the matplotlib figure with the calculated grid
-    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
-    axes = axes.flatten()
-
-    for i, col in enumerate(numeric_cols):
-        # Plot with or without hue depending on the use_hue flag
-        if use_hue:
-            sns.histplot(data=data, x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
-        else:
-            sns.histplot(data=data, x=col, kde=True, ax=axes[i])
-            
-        axes[i].set_title(f'{col} Distribution')
-    
-    # Turn off any extra subplots if columns are fewer than grid spaces
-    for j in range(i + 1, len(axes)):
-        axes[j].axis('off')
-    
-    plt.tight_layout()
-    plt.show()
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-import math
-import numpy as np
-import warnings
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
