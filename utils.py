@@ -169,13 +169,15 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
     fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
     axes = axes.flatten()
 
-    for i, col in enumerate(numeric_cols):
+    # Track the index for the axes to skip empty plots correctly
+    plot_index = 0
+
+    for col in numeric_cols:
         # Apply log1p transformation if log_scale is True and skip columns with negative values
         if log_scale:
             # Check for negative values (log1p can handle zero but not negatives)
             if (data[col] < 0).any():
                 warnings.warn(f"Column '{col}' contains negative values and will be skipped for log scale.")
-                axes[i].axis('off')  # Turn off the axis for the skipped column
                 continue  # Skip this column if it has negative values
             plot_data = np.log1p(data[col])  # Log1p-transform the data for plotting
             xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
@@ -185,18 +187,18 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
 
         # Plot with or without hue depending on the use_hue flag
         if use_hue:
-            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
+            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[plot_index], multiple="stack")
         else:
-            sns.histplot(data=plot_data, kde=True, ax=axes[i])
+            sns.histplot(data=plot_data, kde=True, ax=axes[plot_index])
             
-        axes[i].set_title(f'{col} Distribution')
-        axes[i].set_xlabel(xlabel)
-    
+        # Set titles and labels only for plotted columns
+        axes[plot_index].set_title(f'{col} Distribution')
+        axes[plot_index].set_xlabel(xlabel)
+        plot_index += 1  # Increment the plot index only after successfully plotting
+
     # Turn off any extra subplots if columns are fewer than grid spaces
-    for j in range(i + 1, len(axes)):
+    for j in range(plot_index, len(axes)):
         axes[j].axis('off')
     
     plt.tight_layout()
     plt.show()
-
-
