@@ -81,7 +81,7 @@ def missing_values_plot(data: pd.DataFrame, target: str):
 
 
 
-def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float = 0.5):
+def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float):
     
     """
     Plots the correlation matrix of the features in a DataFrame.
@@ -103,7 +103,7 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float = 
     
      # Filter data to include only numeric columns
     numeric_data = data.select_dtypes(include=[np.number])
-    
+    num_cols = len(numeric_data.columns)
     # Filter usable samples where target is not null and include only numeric columns
     usable = numeric_data[numeric_data[target].notnull()]
 
@@ -113,13 +113,10 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, threshold: float = 
     
     # Calculate the correlation matrix
     corr = usable.corr()
-
-    # Filter the correlation matrix based on the threshold
-    corr = corr[(corr > threshold) | (corr < -threshold)]
     corr = corr.dropna(how='all').dropna(axis=1, how='all')
 
     # Plot the correlation matrix as a heatmap
-    plt.figure(figsize=(10, 10))
+    plt.figure(figsize=(0.3 * num_cols, 0.3 * num_cols))
     plt.title(f'Correlation matrix over the {len(usable)} usable samples')
     sns.heatmap(corr, annot=True, fmt=".2f", cmap='coolwarm', center=0)
     plt.tight_layout()
