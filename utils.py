@@ -134,6 +134,11 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
     plt.show()
     
 
+
+import math
+import warnings
+
+
 def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: bool = False):
     """
     Plots histograms for all numeric columns in a DataFrame with optional class separation by hue
@@ -164,13 +169,14 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
     axes = axes.flatten()
 
     for i, col in enumerate(numeric_cols):
-        # Apply log transformation if log_scale is True
+        # Apply log1p transformation if log_scale is True and skip columns with negative values
         if log_scale:
-            # Check for non-positive values in the data (log transformation requires positive values)
-            if (data[col] <= 0).any():
-                raise ValueError(f"Column '{col}' contains non-positive values, which cannot be used with log scale.")
-            plot_data = np.log(data[col])  # Log-transform the data for plotting
-            xlabel = f'Log of {col}'  # Label for log-transformed x-axis
+            # Check for negative values (log1p can handle zero but not negatives)
+            if (data[col] < 0).any():
+                warnings.warn(f"Column '{col}' contains negative values and will be skipped for log scale.")
+                continue  # Skip this column if it has negative values
+            plot_data = np.log1p(data[col])  # Log1p-transform the data for plotting
+            xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
         else:
             plot_data = data[col]
             xlabel = col
@@ -190,3 +196,4 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = False, log_scale: 
     
     plt.tight_layout()
     plt.show()
+
