@@ -265,5 +265,76 @@ def violinplot_all(data: pd.DataFrame, target: str, log_scale: bool = False):
     plt.tight_layout()
     plt.show()
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+import warnings
+import pandas as pd
+
+def boxplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bool = False):
+    """
+    Plots boxplots for all numeric columns in a DataFrame with optional class separation by hue
+    and optional log scaling using log1p for the y-axis.
+    
+    Parameters:
+    - data (pd.DataFrame): The input DataFrame.
+    - target (str): The target column name, used as x-axis if it's categorical and hue is True.
+    - hue (bool): If True, will use target as hue for categorical targets; default is True. Max Hue is limited to 5.
+    - log_scale (bool): If True, applies a log1p scale to the y-axis for each boxplot, default is False.
+    """
+    # Check if the target column exists in the DataFrame
+    if target not in data.columns:
+        raise ValueError(f"The target column '{target}' does not exist in the provided DataFrame.")
+    
+    # Check if hue should be used (only if the target is categorical and hue is True)
+    use_hue = hue and (data[target].dtype == 'object' or data[target].nunique() < 5)
+    
+    # Filter numeric columns excluding the target
+    numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
+    
+    # Determine the number of rows and columns for the grid
+    n_cols = 3  
+    n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
+    
+    # Set up the matplotlib figure with the calculated grid
+    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axes = axes.flatten()
+
+    for i, col in enumerate(numeric_cols):
+        # Apply log1p transformation if log_scale is True
+        if log_scale:
+            # Check for non-positive values in the data
+            if (data[col] <= 0).any():
+                warnings.warn(f"Column '{col}' contains non-positive values and cannot use log scale. Plotting without log scale.")
+                plot_data = data[col]  # Use original data if log scale isn't possible due to non-positive values
+                ylabel = col
+                title = f"{col} Distribution"
+            else:
+                plot_data = np.log1p(data[col])  # Log1p-transform the data
+                ylabel = f'Log1p of {col}'  # Label for log-transformed y-axis
+                title = f'Log1p Transformed {col} Distribution'
+        else:
+            plot_data = data[col]
+            ylabel = col
+            title = f"{col} Distribution"
+
+        # Plot with or without hue depending on the use_hue flag
+        if use_hue:
+            sns.boxplot(data=data.assign(**{col: plot_data}), x=target, y=col, hue=target if use_hue else None, ax=axes[i])
+        else:
+            sns.boxplot(y=plot_data, ax=axes[i])
+
+        axes[i].set_title(title)
+        axes[i].set_ylabel(ylabel)
+        if log_scale:
+            axes[i].set_yscale('log')  # Set y-axis to log scale if log_scale is True
+            
+    # Turn off extra subplots if columns are fewer than grid spaces
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+    
+    plt.tight_layout()
+    plt.show()
 
     
