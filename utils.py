@@ -108,8 +108,7 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
 
     usable = data.select_dtypes(include=[np.number])
     num_cols = len(usable.columns)
-    # Filter usable samples where target is not null and include only numeric columns
-    #usable = numeric_data[numeric_data[target].notnull()]
+    
 
 
     if method not in ['pearson', 'spearman', 'kendall']:
@@ -120,12 +119,12 @@ def plot_correlation_matrix(data: pd.DataFrame, target: str, method: str = 'pear
         print("No usable samples found (all target values are missing).")
         return
     
-    # Calculate the correlation matrix
+    #Calculate the correlation matrix
 
     corr = usable.corr(method = method)
     corr = corr.dropna(how='all').dropna(axis=1, how='all')
 
-    # Plot the correlation matrix as a heatmap
+    #Plot the correlation matrix as a heatmapp
     plt.figure(figsize=(max(0.5 * num_cols, 10), max(0.5 * num_cols, 10)))
     plt.title(f'Correlation matrix over the {len(usable)} usable samples with {method} correlation')
 
@@ -153,21 +152,85 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: b
     - hue (bool): If True, will use target as hue for categorical targets; default is True. Max Hue is limited to 5.
     - log_scale (bool): If True, applies a log1p scale to the x-axis for each histogram, default is False.
     """
-    # Check if the target column exists in the DataFrame
+    #Check if the target column exists in the DataFrame
     if target not in data.columns:
         raise ValueError(f"The target column '{target}' does not exist in the provided DataFrame.")
     
-    # Check if hue should be used (only if the target is categorical and hue is True)
+    #Check if hue is to be used (only if the target is categorical and hue is True)
     use_hue = hue and (data[target].dtype == 'object' or data[target].nunique() < 5)
     
-    # Filter numeric columns excluding the target
+    #Filter numeric columns excluding the target
     numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
     
-    # Determine the number of rows and columns for the grid
+    #Determine the number of rows and columns for the grid
     n_cols = 3  
     n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
     
-    # Set up the matplotlib figure with the calculated grid
+    #Set up the matplotlib figure with the calculated grid
+    fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axes = axes.flatten()
+
+    for i, col in enumerate(numeric_cols):
+        #Apply log1p transformation if log_scale is True
+        if log_scale:
+            #Check for non-positive values in the data
+            if (data[col] < 0).any():
+                warnings.warn(f"Column '{col}' contains negative values and cannot use log scale. Plotting without log scale.")
+                plot_data = data[col]  #Use original data if log scale isn't possible due to negative values
+                xlabel = col
+                title = f"{col} Distribution"
+            else:
+                plot_data = np.log1p(data[col])  #Log1p-transform the data
+                xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
+                title = f'Log1p Transformed {col} Distribution'
+        else:
+            plot_data = data[col]
+            xlabel = col
+            title = f"{col} Distribution"
+
+        #Plot with or without hue depending on the use_hue flag
+        if use_hue:
+            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
+        else:
+            sns.histplot(data=plot_data, kde=True, ax=axes[i])
+            
+        axes[i].set_title(title)
+        axes[i].set_xlabel(xlabel)
+    
+    #Turn off extra subplots if columns are fewer than grid spaces
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+    
+    plt.tight_layout()
+    plt.show()
+
+
+def violinplot_all(data: pd.DataFrame, target: str, log_scale: bool = False):
+    """
+    Plots violin plots for all numeric columns in a DataFrame, separated by the target class.
+    Optional log scaling with log1p is applied to each numeric column if specified.
+    
+    Parameters:
+    - data (pd.DataFrame): The input DataFrame.
+    - target (str): The target column name, used to separate the violin plots by class.
+    - log_scale (bool): If True, applies a log1p scale to each violin plot, default is False.
+    """
+    #Check if the target column exists in the DataFrame
+    if target not in data.columns:
+        raise ValueError(f"The target column '{target}' does not exist in the provided DataFrame.")
+    
+    #Ensure that the target column is categorical for use in the violin plot
+    if data[target].dtype != 'object' and data[target].nunique() >= 10:
+        warnings.warn(f"The target column '{target}' has a high number of unique values and may not be suitable for categorical plotting.")
+
+    #Filter to select only the numerical columns for plotting
+    numeric_cols = [col for col in data.columns if data[col].dtype != object and col != target]
+    
+    #Determine the number of rows and columns for the grid
+    n_cols = 3  
+    n_rows = math.ceil(len(numeric_cols) / n_cols)  # Calculate rows based on columns and the number of plots
+    
+    #Set up the matplotlib figure with the calculated grid
     fig, axes = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(5 * n_cols, 4 * n_rows))
     axes = axes.flatten()
 
@@ -178,27 +241,24 @@ def histplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: b
             if (data[col] < 0).any():
                 warnings.warn(f"Column '{col}' contains negative values and cannot use log scale. Plotting without log scale.")
                 plot_data = data[col]  # Use original data if log scale isn't possible
+                title = f"{col} by {target}"
                 xlabel = col
-                title = f"{col} Distribution"
             else:
                 plot_data = np.log1p(data[col])  # Log1p-transform the data
-                xlabel = f'Log1p of {col}'  # Label for log-transformed x-axis
-                title = f'Log1p Transformed {col} Distribution'
+                title = f'Log1p Transformed {col} by {target}'
+                xlabel = f'Log1p of {col}'
         else:
             plot_data = data[col]
+            title = f"{col} by {target}"
             xlabel = col
-            title = f"{col} Distribution"
 
-        # Plot with or without hue depending on the use_hue flag
-        if use_hue:
-            sns.histplot(data=data.assign(**{col: plot_data}), x=col, kde=True, hue=target, ax=axes[i], multiple="stack")
-        else:
-            sns.histplot(data=plot_data, kde=True, ax=axes[i])
+        #Plot violin plot, with target as the x-axis (hue is not needed for violin plots)
+        sns.violinplot(data=data.assign(**{col: plot_data}), x=target, y=col, ax=axes[i])
             
         axes[i].set_title(title)
-        axes[i].set_xlabel(xlabel)
+        axes[i].set_ylabel(xlabel)
     
-    # Turn off any extra subplots if columns are fewer than grid spaces
+    #Turn off extra subplots if columns are fewer than grid spaces
     for j in range(i + 1, len(axes)):
         axes[j].axis('off')
     
