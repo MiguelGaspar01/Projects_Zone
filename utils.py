@@ -264,3 +264,6 @@ def violinplot_all(data: pd.DataFrame, target: str, log_scale: bool = False):
     
     plt.tight_layout()
     plt.show()
+
+
+    
