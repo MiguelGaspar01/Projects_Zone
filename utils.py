@@ -337,4 +337,25 @@ def boxplot_all(data: pd.DataFrame, target: str, hue: bool = True, log_scale: bo
     plt.tight_layout()
     plt.show()
 
+def reorderer(x : pd.DataFrame, y : pd.DataFrame, x_target : str):
+
+    """
+    Reorders the columns of a DataFrame `x` to match the column order of another DataFrame `y`.
+    The target column `x_target` is moved to the last column.
+    x : pd.DataFrame : The input DataFrame to reorder.
+    y : pd.DataFrame : The reference DataFrame to match the column order.
+    x_target : str : The target column name to move to the last column.
     
+    """
+    x_target = x[x_target]
+
+    x_copy = x.drop(columns = x_target.name) #.name gets the str value
+    
+    #Reindex / reorder `x` to match the column order of `y`
+
+    x_copy = x_copy.reindex(columns=y.columns)
+    x_copy[x_target.name] = x_target
+    
+    x = x_copy
+
+    return x #returns the reorder x dataframe
